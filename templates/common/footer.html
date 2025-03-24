@@ -1,0 +1,61 @@
+ <!-- ======= Footer ======= -->
+ <footer id="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-info">
+              <h3>Agri-Con<span>.</span></h3>
+              <p>
+                SGSITS, INDORE<br>
+                <strong>Phone:</strong> 7000021916<br>
+                <strong>Email:</strong> garvitrai25@gmail.com<br>
+              </p>
+              <div class="social-links mt-3">
+                {% comment %} <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a> {% endcomment %}
+                {% comment %} <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a> {% endcomment %}
+                <a href="https://www.instagram.com/rai_garvit2003/" class="instagram"><i class="bx bxl-instagram"></i></a>
+                {% comment %} <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a> {% endcomment %}
+                <a href="https://www.linkedin.com/in/garvit-rai-11b3b0250/" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-2 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'home' %}">Home</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'home' %}#about">About us</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'home' %}#services">Services</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'home' %}#contact">Contact Us</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'sale_page' %}">Sell</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'buy_page' %}">Buy</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-4 col-md-6 footer-newsletter">
+            <h4>Our Newsletter</h4>
+            <p>We collect your email for future newsletter on mail service</p>
+            <form action="{% url 'email_subscribe' %}" method="post">{% csrf_token %}
+              <input type="email" name="email" placeholder="Enter your Email"><input type="submit" value="Subscribe">
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Agri-Con</span></strong>. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+  <!-- End Footer -->

@@ -1,0 +1,164 @@
+{% extends 'common/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Checkout{% endblock %}
+
+<!-- ======= Header ======= -->
+{% block header %}
+{% include 'common/navbar.html' %}
+{% endblock %}
+<!-- End Header -->
+
+{% block content %}
+<main id="main">
+  
+  <!-- ======= Breadcrumbs ======= -->
+  <section id="breadcrumbs" class="breadcrumbs">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2>Checkout</h2>
+        <ol>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'view_cart' %}">Cart</a></li>
+          <li>Checkout</li>
+        </ol>
+      </div>
+    </div>
+  </section><!-- End Breadcrumbs -->
+
+  <!-- ======= Checkout Section ======= -->
+  <section class="inner-page">
+    <div class="container">
+      
+      {% if messages %}
+      <div class="row">
+        <div class="col-12">
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Shipping Information</h5>
+              <form method="post" id="checkout-form">
+                {% csrf_token %}
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    {{ form.full_name|as_crispy_field }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    {{ form.email|as_crispy_field }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    {{ form.phone|as_crispy_field }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    {{ form.pincode|as_crispy_field }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    {{ form.city|as_crispy_field }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    {{ form.state|as_crispy_field }}
+                  </div>
+                </div>
+                <div class="mb-3">
+                  {{ form.address|as_crispy_field }}
+                </div>
+                
+                <h5 class="card-title mt-4">Payment Method</h5>
+                <div class="mb-3">
+                  {{ form.payment_method|as_crispy_field }}
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                  <button type="submit" class="btn btn-warning" id="place-order-btn">
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="order-spinner"></span>
+                    Place Order
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Order Summary</h5>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                      <td>{{ item.product.title|truncatechars:20 }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>${{ item.total }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between mb-2">
+                <span>Subtotal:</span>
+                <span>${{ total }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span>Shipping:</span>
+                <span>Free</span>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between mb-2">
+                <strong>Total:</strong>
+                <strong>${{ total }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Secure Checkout</h5>
+              <p class="text-muted small">
+                <i class="bi bi-shield-lock"></i> Your payment information is processed securely. We do not store credit card details.
+              </p>
+              <div class="text-center mt-3">
+                <img src="{% static 'assets/img/payment-methods.png' %}" alt="Payment Methods" class="img-fluid" style="max-width: 250px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('checkout-form').addEventListener('submit', function() {
+    document.getElementById('place-order-btn').disabled = true;
+    document.getElementById('order-spinner').classList.remove('d-none');
+  });
+</script>
+{% endblock %} 

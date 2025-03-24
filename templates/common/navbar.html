@@ -1,0 +1,54 @@
+  <!-- ======= Header ======= -->
+  <header id="header" class="header-inner-pages">
+    <div class="container d-flex align-items-center justify-content-lg-between">
+
+      <h1 class="logo me-auto me-lg-0"><a href="{% url 'home' %}">AGRI-CON<span>.</span></a></h1>
+      <!-- Uncomment below if you prefer to use an image logo -->
+      <!-- <a href="index.html" class="logo me-auto me-lg-0"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
+
+      <nav id="navbar" class="navbar order-last order-lg-0">
+        <ul>
+          <li><a class="nav-link scrollto " href="{% url 'home' %}">Home</a></li>
+          <li><a class="nav-link scrollto" href="{% url 'sale_page' %}">Sell</a></li>
+          <li><a class="nav-link scrollto" href="{% url 'buy_page' %}">Buy</a></li>
+          <li><a class="nav-link scrollto" href="{% url 'home' %}#about">About</a></li>
+          <li><a class="nav-link scrollto" href="{% url 'home' %}#services">Services</a></li>
+          <li><a class="nav-link scrollto" href="{% url 'project' %}">Project</a></li>
+          <li><a class="nav-link scrollto" href="{% url 'home' %}#contact">Contact</a></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav>
+      <!-- .navbar -->
+      
+      {% if request.user.is_authenticated %}  
+        <div class="dropdown">
+          <button class="btn btn-warning dropdown-toggle" type="button" id="userAccountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            {% if request.user.get_full_name %}
+              {{ request.user.get_full_name }}
+            {% else %}
+              {{ request.user.username }}
+            {% endif %}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="userAccountDropdown">
+            <li><a class="dropdown-item" href="{% url 'userprofile' %}">Dashboard</a></li>
+            <li><a class="dropdown-item" href="{% url 'my_orders' %}">My Orders</a></li>
+            <li><a class="dropdown-item" href="{% url 'editUserInfo' %}">Edit Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'add_complain' %}">Submit Complaint</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+          </ul>
+        </div>
+        <a href="{% url 'view_cart' %}" class="btn btn-outline-warning ms-2">
+          <i class="bi bi-cart3"></i>
+          {% if cart_count > 0 %}
+            <span class="badge bg-warning rounded-pill">{{ cart_count }}</span>
+          {% endif %}
+        </a>
+      {% else %} 
+        <a href="{% url 'login' %}" class="btn btn-outline-warning">Login</a>
+        <a href="{% url 'signup' %}" class="btn btn-outline-warning">Register</a>
+      {% endif %}
+
+    </div>
+  </header>
+  <!-- End Header -->

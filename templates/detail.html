@@ -1,0 +1,339 @@
+{% extends 'common/base.html' %}
+{% load static %}
+{% load custom_tags %}
+
+
+{% block title %}Home{% endblock %}
+
+<!-- ======= Header ======= -->
+{% block header %}
+{% include 'common/navbar.html' %}
+{% endblock %}
+<!-- End Header -->
+
+{% block content %}
+<main id="main">
+  
+    <!-- ======= Breadcrumbs ======= -->
+    <section id="breadcrumbs" class="breadcrumbs">
+        <div class="container">
+  
+          <div class="d-flex justify-content-between align-items-center">
+            <h2>Product Details</h2>
+            <ol>
+              <li><a href="{% url 'home' %}">Home</a></li>
+              <li>Details</li>
+            </ol>
+          </div>
+  
+        </div>
+      </section><!-- End Breadcrumbs -->
+  
+      <!-- ======= Portfolio Details Section ======= -->
+      <section id="portfolio-details" class="portfolio-details">
+        <div class="container">
+  
+          <div class="row gy-4">
+  
+            <div class="col-lg-8">
+              <div class="portfolio-details-slider swiper">
+                <div class="swiper-wrapper align-items-center">
+  
+                  <div class="swiper-slide">
+                    {% if product.image %}
+                    <img src="{{product.image.url}}" alt="">
+                    {% else %}
+                    <img src="{% static 'assets/img/portfolio/portfolio-1.jpg' %}" alt="">
+                    {% endif %}
+                  </div>
+  
+                </div>
+                <div class="swiper-pagination"></div>
+              </div>
+            </div>
+  
+            <div class="col-lg-4">
+              <div class="portfolio-info">
+                <h3><u>Product information</u></h3>
+                <ul>
+                  <li><strong>Category</strong>: {{product.category}}</li>
+                  <li><strong>Product Type</strong>: {{product.get_post_type_display}}</li>
+                  <li><strong>Saller/Buyer</strong>: {{product.user.get_full_name}}</li>
+                  <li><strong>Price:</strong> <span class="text-success">₹{{ product.price }}</span> / {% if product.unit %}{{ product.unit }}{% else %}Item{% endif %}</li>
+                  <li><strong>Quantity</strong>: {{product.quantity}} -{% if product.unit %}{{product.unit}} {% else %}Items{% endif %}</li>
+                  <li><strong>Project date</strong>: {{product.create_date}}</li>
+                  {% if request.user.is_authenticated %}
+                  <li>
+                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-warning w-100">
+                      <i class="bi bi-cart-plus"></i> Add to Cart
+                    </a>
+                  </li>
+                  {% else %}
+                  <li>
+                    <a href="{% url 'login' %}" class="btn btn-outline-warning w-100">
+                      Login to Purchase
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+              <div class="portfolio-description">
+                <h2><u>{{product.title}}</u></h2>
+                <p>
+                    {{product.description}}
+                </p>
+              </div>
+            </div>
+  
+          </div>
+  
+        </div>
+      </section>
+      <!-- End Portfolio Details Section -->
+
+      <!-- ======= Reviews Section ======= -->
+      <section id="reviews" class="reviews">
+        <div class="container" data-aos="fade-up">
+  
+          <div class="section-title">
+            <h2>Reviews</h2>
+            <p>Customer Ratings and Reviews</p>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-4 text-center mb-4">
+              <h3 class="display-4 fw-bold">{{ product.average_rating }}</h3>
+              <div class="mb-3">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= product.average_rating|floatformat:"0"|add:"0" %}
+                    <i class="bi bi-star-fill text-warning"></i>
+                  {% elif forloop.counter <= product.average_rating|add:"0.5"|floatformat:"0"|add:"0" %}
+                    <i class="bi bi-star-half text-warning"></i>
+                  {% else %}
+                    <i class="bi bi-star text-warning"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <p>Based on {{ reviews.count }} reviews</p>
+
+              {% if can_review %}
+                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                  Write a Review
+                </button>
+              {% elif user_has_reviewed %}
+                <p class="text-muted mt-3">You have already reviewed this product</p>
+              {% elif user.is_authenticated %}
+                <p class="text-muted mt-3">Purchase this product to leave a review</p>
+              {% else %}
+                <p class="text-muted mt-3">Login to leave a review</p>
+              {% endif %}
+            </div>
+
+            <div class="col-lg-8">
+              {% if reviews %}
+                {% for review in reviews %}
+                  <div class="card mb-3">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between mb-2">
+                        <div>
+                          <h5 class="mb-0">{{ review.user.get_full_name|default:review.user.username }}</h5>
+                          <div>
+                            {% for i in "12345" %}
+                              {% if forloop.counter <= review.rating %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                              {% else %}
+                                <i class="bi bi-star text-warning"></i>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                        </div>
+                        <div class="text-muted small">
+                          {{ review.created_at|date:"M d, Y" }}
+                          {% if review.verified_purchase %}
+                            <span class="badge bg-success ms-2">Verified Purchase</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <p class="card-text">{{ review.comment }}</p>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="alert alert-info">
+                  No reviews yet. Be the first to review this product!
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- End Reviews Section -->
+
+      <!-- Review Modal -->
+      <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="reviewModalLabel">Write a Review</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'add_review' product.id %}" method="post">
+              {% csrf_token %}
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label class="form-label">Rating</label>
+                  <div class="rating-stars mb-3">
+                    <div class="d-flex justify-content-between">
+                      {% for item in "1=Poor,2=Fair,3=Good,4=Very Good,5=Excellent"|split:"," %}
+                        {% with rating_info=item|split:"=" %}
+                          {% with value=rating_info.0 label=rating_info.1 %}
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="rating" id="rating{{ value }}" value="{{ value }}">
+                              <label class="form-check-label" for="rating{{ value }}">{{ value }}</label>
+                            </div>
+                          {% endwith %}
+                        {% endwith %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="reviewComment" class="form-label">Your Review</label>
+                  <textarea class="form-control" id="reviewComment" name="comment" rows="5" placeholder="What did you like or dislike about this product?"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Review</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- End Review Modal -->
+
+      <!-- ======= Reply Section ======= -->
+    <section id="contact" class="contact">
+        <div class="container" data-aos="fade-up">
+  
+          <div class="section-title">
+            <h2>Reply here</h2>
+          </div>  
+          <div class="row mt-2">
+  
+  
+            <div class="col-lg-8 mt-5 mt-lg-0">
+  
+              <form action="{% url 'reply' %}" method="post" class="">
+                {% csrf_token %}
+                <div class="row">
+                <input hidden type="text" name="product_id" value="{{product.id}}">                  
+                <div class="form-group mt-3">
+                  <textarea class="form-control" name="reply" rows="5" placeholder="Message" required></textarea>
+                </div>
+                <div class="my-2">
+                  <button type="submit" class="btn btn-warning">Send Reply</button>
+                </div>
+              </form>
+  
+            </div>
+  
+          </div>
+  
+        </div>
+      </section>
+      <!-- End reply Section -->
+
+    <!-- ======= Reply list Section ======= -->
+  <section style="background-color: #eee;">
+    <div class="container py-5">
+      {% if beats %}
+      {% for beat in beats %}
+      <div class="row justify-content-center mb-3">
+        <div class="col-md-12 col-xl-10">
+          <div class="card shadow-0 border rounded-3">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12 col-lg-3 col-xl-3 mb-2 mb-lg-0">
+                  <div class="bg-image hover-zoom ripple rounded ripple-surface">
+                    <img src="{{beat.user.user_info.profile_pic.url}}" height="100vh" class="w-100 rounded-circle" />
+                    <a href="#!">
+                      <div class="hover-overlay">
+                        <div class="mask" style="background-color: rgba(253, 253, 253, 0.15);"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-6 col-xl-6">
+                  <h5>{{beat.product.title}}</h5>
+                  <p class=" mb-4 mb-md-0">
+                    {{beat.reply}}
+                  </p>
+                </div>
+                <div class="col-md-6 col-lg-3 col-xl-3 border-sm-start-none border-start">
+                  
+                  <h6 class="text-warning">Name: <span class="text-info">{{beat.user.first_name}}</span></h6>
+                  <h6 class="text-warning">Phone: <span class="text-info"><a href="tel:{{beat.user.user_info.phone}}">{{beat.user.user_info.phone}}</a></span></h6>
+                  <h6 class="text-warning">Address: <span class="text-info">{{beat.user.user_info.address}}</span></h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="row justify-content-center mb-3">
+        <div class="col-md-12 col-xl-10">
+          <div class="card shadow-0 border rounded-3">
+            <div class="card-body">
+              No one reply yet.
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  <!-- End Reply list Section -->
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+  <section class="inner-page">
+    <div class="container">
+      <h2 class="mb-4">Related Products</h2>
+      <div class="row">
+        {% for related_product in related_products %}
+        <div class="col-md-3 mb-4">
+          <div class="card h-100">
+            <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.title }}" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+              <h5 class="card-title">{{ related_product.title|truncatechars:25 }}</h5>
+              <p class="card-text text-muted">₹{{ related_product.price }}</p>
+              <div class="d-flex justify-content-between">
+                <a href="{% url 'detail' related_product.id %}" class="btn btn-sm btn-outline-warning">View Details</a>
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'add_to_cart' related_product.id %}" class="btn btn-sm btn-warning">
+                  <i class="bi bi-cart-plus"></i>
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+  <!-- End Related Products Section -->
+</main>
+<!-- End #main -->
+{% endblock %}
+
+<!-- ======= Footer ======= -->
+{% block footer %}
+{% include 'common/footer.html' %}
+{% endblock %}
+<!-- End Footer -->
