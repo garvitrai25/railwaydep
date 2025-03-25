@@ -1,13 +1,24 @@
 #!/bin/bash
 
+echo "Build started"
+set -o errexit  # Exit on error
+
 # Make script executable
 chmod +x build_files.sh
+
+# Print Python version
+python --version
+
+# Upgrade pip
+python -m pip install --upgrade pip
 
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Run collectstatic
-python manage.py collectstatic --noinput
+# Create staticfiles directory if it doesn't exist
+mkdir -p staticfiles
 
-# Make the script executable after creation
-chmod +x build_files.sh 
+# Run collectstatic
+python manage.py collectstatic --noinput --clear
+
+echo "Build completed" 
