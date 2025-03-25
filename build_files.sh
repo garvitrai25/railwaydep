@@ -1,11 +1,13 @@
 #!/bin/bash
-echo "Installing dependencies..."
-python -m pip install --upgrade pip
+
+# Make script executable
+chmod +x build_files.sh
+
+# Install Python dependencies
 pip install -r requirements.txt
 
-echo "Making migrations..."
-python manage.py makemigrations
-python manage.py migrate
+# Run collectstatic
+python manage.py collectstatic --noinput
 
-echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear 
+# Make the script executable after creation
+chmod +x build_files.sh 
