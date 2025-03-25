@@ -13,7 +13,6 @@
           <li><a class="nav-link scrollto" href="{% url 'buy_page' %}">Buy</a></li>
           <li><a class="nav-link scrollto" href="{% url 'home' %}#about">About</a></li>
           <li><a class="nav-link scrollto" href="{% url 'home' %}#services">Services</a></li>
-          <li><a class="nav-link scrollto" href="{% url 'project' %}">Project</a></li>
           <li><a class="nav-link scrollto" href="{% url 'home' %}#contact">Contact</a></li>
         </ul>
         <i class="bi bi-list mobile-nav-toggle"></i>
@@ -38,6 +37,39 @@
             <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </div>
+
+        <!-- Notification Bell -->
+        <div class="dropdown ms-2">
+          <button class="btn btn-outline-warning position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-bell"></i>
+            {% if unread_notifications_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_notifications_count }}
+                <span class="visually-hidden">unread notifications</span>
+              </span>
+            {% endif %}
+          </button>
+          <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
+            <h6 class="dropdown-header">Notifications</h6>
+            {% if notifications %}
+              {% for notification in notifications %}
+                <a class="dropdown-item {% if not notification.is_read %}bg-light{% endif %}" href="{{ notification.action_url|default:'#' }}" onclick="markNotificationAsRead({{ notification.id }}, event)">
+                  <small class="text-muted d-block">{{ notification.create_date|timesince }} ago</small>
+                  <strong>{{ notification.title }}</strong>
+                  <p class="mb-0 text-wrap">{{ notification.message|truncatechars:100 }}</p>
+                </a>
+                {% if not forloop.last %}
+                  <div class="dropdown-divider"></div>
+                {% endif %}
+              {% endfor %}
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item text-center" href="{% url 'userprofile' %}">View All Notifications</a>
+            {% else %}
+              <div class="dropdown-item text-center text-muted">No notifications</div>
+            {% endif %}
+          </div>
+        </div>
+
         <a href="{% url 'view_cart' %}" class="btn btn-outline-warning ms-2">
           <i class="bi bi-cart3"></i>
           {% if cart_count > 0 %}

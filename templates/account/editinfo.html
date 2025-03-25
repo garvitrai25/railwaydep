@@ -55,6 +55,41 @@
             
             <input type="submit" class="btn btn-warning m-3 w-100 mx-auto" value="Save Changes">                
           </form>
+          
+          <!-- Delete Account Button -->
+          <div class="text-center mb-4">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+              Delete Account
+            </button>
+          </div>
+
+          <!-- Delete Account Modal -->
+          <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="text-danger">Warning: This action cannot be undone!</p>
+                  <p>Are you sure you want to delete your account? This will permanently remove all your data including:</p>
+                  <ul>
+                    <li>Your profile information</li>
+                    <li>Your product listings</li>
+                    <li>Your order history</li>
+                  </ul>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <form method="POST" action="{% url 'delete_account' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete My Account</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

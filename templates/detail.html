@@ -58,10 +58,9 @@
                 <ul>
                   <li><strong>Category</strong>: {{product.category}}</li>
                   <li><strong>Product Type</strong>: {{product.get_post_type_display}}</li>
-                  <li><strong>Saller/Buyer</strong>: {{product.user.get_full_name}}</li>
                   <li><strong>Price:</strong> <span class="text-success">₹{{ product.price }}</span> / {% if product.unit %}{{ product.unit }}{% else %}Item{% endif %}</li>
                   <li><strong>Quantity</strong>: {{product.quantity}} -{% if product.unit %}{{product.unit}} {% else %}Items{% endif %}</li>
-                  <li><strong>Project date</strong>: {{product.create_date}}</li>
+                  <li><strong>Listed on</strong>: {{product.create_date|date:"F j, Y"}}</li>
                   {% if request.user.is_authenticated %}
                   <li>
                     <a href="{% url 'add_to_cart' product.id %}" class="btn btn-warning w-100">
@@ -77,6 +76,36 @@
                   {% endif %}
                 </ul>
               </div>
+
+              <!-- Seller Information Card -->
+              <div class="portfolio-info mt-4">
+                <h3><u>Seller information</u></h3>
+                <div class="d-flex align-items-center mb-3">
+                  {% if product.user.user_info.profile_pic %}
+                    <img src="{{ product.user.user_info.profile_pic.url }}" alt="Seller Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                  {% else %}
+                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                      <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
+                    </div>
+                  {% endif %}
+                  <div>
+                    <h5 class="mb-0">{{ product.user.get_full_name|default:product.user.username }}</h5>
+                    <small class="text-muted">Member since {{ product.user.date_joined|date:"F Y" }}</small>
+                  </div>
+                </div>
+                <ul>
+                  <li><strong>Location</strong>: {{ product.user.user_info.address|default:"Not specified" }}</li>
+                  <li><strong>Total Products</strong>: {{ product.user.productitem_set.count }}</li>
+                  {% if product.user.productitem_set.all|length > 0 %}
+                  <li>
+                    <a href="{% url 'seller_profile' product.user.id %}" class="btn btn-outline-warning btn-sm mt-2">
+                      View Seller's Other Products
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+
               <div class="portfolio-description">
                 <h2><u>{{product.title}}</u></h2>
                 <p>

@@ -68,6 +68,43 @@
   <!-- Template Main JS File -->
   <script src="{% static 'assets/js/main.js' %}"></script>
 
+  <script>
+    function markNotificationAsRead(notificationId, event) {
+      // Prevent the default link behavior
+      event.preventDefault();
+      
+      // Get the clicked element
+      const element = event.currentTarget;
+      const url = element.getAttribute('href');
+      
+      // Send request to mark notification as read
+      fetch(`/mark-notification-as-read/${notificationId}/`)
+        .then(response => {
+          if (response.ok) {
+            // Remove the bg-light class to indicate it's read
+            element.classList.remove('bg-light');
+            
+            // Update the unread count badge
+            const badge = document.querySelector('#notificationDropdown .badge');
+            if (badge) {
+              const currentCount = parseInt(badge.textContent);
+              if (currentCount > 1) {
+                badge.textContent = currentCount - 1;
+              } else {
+                badge.remove();
+              }
+            }
+            
+            // Navigate to the notification's URL if it exists
+            if (url && url !== '#') {
+              window.location.href = url;
+            }
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  </script>
+
 </body>
 
 </html>

@@ -1,0 +1,111 @@
+{% extends 'common/base.html' %}
+{% load static %}
+
+{% block title %}Orders for {{ product.title }}{% endblock %}
+
+{% block header %}
+  {% include 'common/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<main id="main">
+  <section class="py-5" style="background-color: #eee;">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'userprofile' %}">Dashboard</a></li>
+              <li class="breadcrumb-item active">Orders for {{ product.title }}</li>
+            </ol>
+          </nav>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Orders for {{ product.title }}</h5>
+                <a href="{% url 'userprofile' %}" class="btn btn-outline-warning">Back to Dashboard</a>
+              </div>
+            </div>
+            <div class="card-body">
+              {% if orders %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Buyer</th>
+                        <th>Contact</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for order in orders %}
+                        <tr>
+                          <td>#{{ order.id }}</td>
+                          <td>{{ order.full_name }}</td>
+                          <td>
+                            <small>
+                              <i class="fas fa-phone"></i> {{ order.phone }}<br>
+                              <i class="fas fa-envelope"></i> {{ order.email }}
+                            </small>
+                          </td>
+                          <td>
+                            {% for item in order.orderitem_set.all %}
+                              {% if item.product == product %}
+                                {{ item.quantity }} {{ item.product.get_unit_display }}
+                                <br>
+                                <small class="text-muted">Price: ₹{{ item.price }}</small>
+                              {% endif %}
+                            {% endfor %}
+                          </td>
+                          <td>₹{{ order.order_total }}</td>
+                          <td>
+                            <span class="badge {% if order.status == 'PENDING' %}bg-warning
+                                             {% elif order.status == 'PROCESSING' %}bg-info
+                                             {% elif order.status == 'COMPLETED' %}bg-success
+                                             {% elif order.status == 'CANCELLED' %}bg-danger
+                                             {% else %}bg-secondary{% endif %}">
+                              {{ order.status }}
+                            </span>
+                          </td>
+                          <td>{{ order.create_date|date:"M d, Y" }}</td>
+                          <td>
+                            <div class="btn-group">
+                              <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">
+                                View Details
+                              </a>
+                              {% if order.status == 'PENDING' %}
+                                <a href="{% url 'confirm_order' order.id %}" class="btn btn-sm btn-success">
+                                  Confirm
+                                </a>
+                                <a href="{% url 'cancel_order' order.id %}" class="btn btn-sm btn-danger">
+                                  Cancel
+                                </a>
+                              {% endif %}
+                            </div>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <p class="text-muted">No orders yet for this product.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block footer %}
+  {% include 'common/footer.html' %}
+{% endblock %} 

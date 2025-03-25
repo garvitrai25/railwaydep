@@ -24,12 +24,13 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                print('successfully login in')
+                messages.success(request, 'Successfully logged in!')
                 return redirect('home')
             else:
-                return render(request,'account/login.html')
+                messages.error(request, 'Invalid username or password. Please try again.')
+                return render(request, 'account/login.html')
         else:
-            return render(request,'account/login.html')
+            return render(request, 'account/login.html')
     else:
         return redirect('home')
 
@@ -40,11 +41,9 @@ def signup_view(request):
         form1 = UserInfo()
         if request.method == "POST":
             form = UserSignUpForm(request.POST)
-            form1 = UserInfo(request.POST, request.FILES)  # Make sure to use request.FILES for file uploads      
+            form1 = UserInfo(request.POST, request.FILES)
 
             if form.is_valid() and form1.is_valid():
-                print(f"Profile pic: {form1.cleaned_data['profile_pic']}")
-                
                 # Temporarily disconnect the post_save signal
                 post_save.disconnect(create_user_profile, sender=User)
                 
@@ -57,20 +56,25 @@ def signup_view(request):
                     userinfo.user = userform
                     userinfo.save()
                     
-                    # Send email notification
+                    # Try to send email notification, but don't block account creation if it fails
                     try:
-                        print("got it", request.META['HTTP_REFERER'])
                         from_email = settings.DEFAULT_FROM_EMAIL
                         message = f"Dear {form.cleaned_data['username']}, Thanks for creating an account. Your email address: {form.cleaned_data['email']}"
                         email = form.cleaned_data['email']
-                        send_mail("Your account has been created!", message, from_email, [
-                                email], fail_silently=False)
-                        messages.success(
-                            request, f"Account successfully created. Please login.")
-                    except BadHeaderError as error:
-                        messages.error(request, f"{error}")
+                        send_mail(
+                            "Your account has been created!", 
+                            message, 
+                            from_email, 
+                            [email], 
+                            fail_silently=True
+                        )
+                    except Exception as e:
+                        # Log the error but don't show it to the user
+                        print(f"Email sending failed: {str(e)}")
                     
+                    messages.success(request, "Account created successfully! Please login with your credentials.")
                     return redirect('login')
+                    
                 finally:
                     # Reconnect the signal regardless of success or failure
                     post_save.connect(create_user_profile, sender=User)
@@ -195,6 +199,21 @@ def editUserInfo(request):
     return render(request, 'account/editinfo.html', context)
 
 
+@login_required(login_url='/account/login/')
+def delete_account(request):
+    if request.method == "POST":
+        user = request.user
+        try:
+            # This will delete the User and all related data due to CASCADE
+            user.delete()
+            messages.success(request, "Your account has been successfully deleted.")
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, "An error occurred while deleting your account. Please try again.")
+            return redirect('editUserInfo')
+    else:
+        messages.error(request, "Invalid request method.")
+        return redirect('editUserInfo')
 
 
 class ResetPasswordView(SuccessMessageMixin, PasswordResetView):

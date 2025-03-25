@@ -4,8 +4,10 @@
 *.pyc
 __pycache__
 db.sqlite3
+db.sqlite3-journal
 media/*
 migrations/
+static/
 
 # Backup files #
 *.bak
@@ -44,8 +46,7 @@ atlassian-ide-plugin.xml
 # Python #
 *.py[cod]
 *$py.class
-
-# Distribution / packaging #
+*.so
 .Python
 build/
 develop-eggs/
@@ -53,6 +54,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+lib/
 lib64/
 parts/
 sdist/
@@ -93,10 +95,8 @@ celerybeat-schedule.*
 *.sage.py
 
 # Virtual Environments #
-.env
-.venv
-env/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
@@ -134,3 +134,13 @@ GitHub.sublime-settings
 
 # Ignore environment variables file #
 .env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

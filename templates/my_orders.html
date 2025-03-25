@@ -25,7 +25,7 @@
     </div>
   </section><!-- End Breadcrumbs -->
 
-  <!-- ======= My Orders Section ======= -->
+  <!-- ======= Orders Section ======= -->
   <section class="inner-page">
     <div class="container">
       
@@ -70,6 +70,7 @@
                     <tr>
                       <th>Order #</th>
                       <th>Date</th>
+                      <th>Items</th>
                       <th>Total</th>
                       <th>Status</th>
                       <th>Payment</th>
@@ -81,7 +82,18 @@
                     <tr>
                       <td>#{{ order.id }}</td>
                       <td>{{ order.create_date|date:"M d, Y" }}</td>
-                      <td>${{ order.order_total }}</td>
+                      <td>
+                        {% for item in order.orderitem_set.all %}
+                        <div class="d-flex align-items-center mb-2">
+                          <img src="{{ item.product.image.url }}" alt="{{ item.product.title }}" class="img-fluid rounded" style="max-width: 40px; margin-right: 10px;">
+                          <div>
+                            <div>{{ item.product.title }}</div>
+                            <small class="text-muted">{{ item.quantity }} x ₹{{ item.price }}</small>
+                          </div>
+                        </div>
+                        {% endfor %}
+                      </td>
+                      <td>₹{{ order.order_total }}</td>
                       <td>
                         {% if order.status == 'PENDING' %}
                         <span class="badge bg-warning">{{ order.get_status_display }}</span>
@@ -90,6 +102,8 @@
                         {% elif order.status == 'SHIPPED' %}
                         <span class="badge bg-primary">{{ order.get_status_display }}</span>
                         {% elif order.status == 'DELIVERED' %}
+                        <span class="badge bg-success">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'COMPLETED' %}
                         <span class="badge bg-success">{{ order.get_status_display }}</span>
                         {% elif order.status == 'CANCELLED' %}
                         <span class="badge bg-danger">{{ order.get_status_display }}</span>
@@ -107,7 +121,16 @@
                         {% endif %}
                       </td>
                       <td>
-                        <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-warning">View Details</a>
+                        <div class="btn-group">
+                          <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">
+                            View Details
+                          </a>
+                          {% if order.status == 'PENDING' and order.payment_status == 'PENDING' %}
+                          <a href="{% url 'payment' order.id %}" class="btn btn-sm btn-warning">
+                            Pay Now
+                          </a>
+                          {% endif %}
+                        </div>
                       </td>
                     </tr>
                     {% endfor %}
@@ -131,4 +154,8 @@
   </section>
 
 </main>
+{% endblock %}
+
+{% block footer %}
+  {% include 'common/footer.html' %}
 {% endblock %} 

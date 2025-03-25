@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 POST_TYPE = (
     ("FS", "For Sale"),
@@ -67,6 +68,8 @@ class ProductItem(models.Model):
     unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='piece')
     post_type = models.CharField(max_length=2, choices=POST_TYPE)
     status = models.BooleanField(default=True)
+    locked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='locked_products')
+    locked_until = models.DateTimeField(null=True, blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -74,14 +77,21 @@ class ProductItem(models.Model):
         return self.title
 
     @property
-    def available_quantity(self):
-        """Returns the available quantity of the product"""
-        return max(0, self.quantity - self.sold_quantity)
-
-    @property
     def is_available(self):
         """Returns whether the product is available for purchase"""
-        return self.status and self.available_quantity > 0
+        return self.status and self.quantity > 0
+
+    @property
+    def available_quantity(self):
+        """Returns the available quantity of the product"""
+        return self.quantity - (self.sold_quantity or 0)
+
+    @property
+    def is_locked(self):
+        """Returns whether the product is locked by a buyer"""
+        if not self.locked_by or not self.locked_until:
+            return False
+        return timezone.now() < self.locked_until
 
     @property
     def average_rating(self):
@@ -165,26 +175,13 @@ class Order(models.Model):
         ('PROCESSING', 'Processing'),
         ('SHIPPED', 'Shipped'),
         ('DELIVERED', 'Delivered'),
-        ('CANCELLED', 'Cancelled'),
-    )
-    
-    PAYMENT_STATUS_CHOICES = (
-        ('PENDING', 'Pending'),
         ('COMPLETED', 'Completed'),
-        ('FAILED', 'Failed'),
-        ('REFUNDED', 'Refunded'),
-    )
-    
-    PAYMENT_METHOD_CHOICES = (
-        ('credit_card', 'Credit Card'),
-        ('debit_card', 'Debit Card'),
-        ('upi', 'UPI'),
-        ('net_banking', 'Net Banking'),
+        ('CANCELLED', 'Cancelled'),
     )
     
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
-    email = models.EmailField()
+    email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=15)
     address = models.TextField()
     city = models.CharField(max_length=100)
@@ -192,9 +189,6 @@ class Order(models.Model):
     pincode = models.CharField(max_length=10)
     zipcode = models.CharField(max_length=10)
     order_total = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='credit_card')
-    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -212,6 +206,45 @@ class Order(models.Model):
         elif self.zipcode and not self.pincode:
             self.pincode = self.zipcode
         super().save(*args, **kwargs)
+
+    def lock_products(self):
+        """Lock the products for this order"""
+        for item in self.orderitem_set.all():
+            product = item.product
+            product.locked_by = self.user
+            product.locked_until = timezone.now() + timezone.timedelta(days=3)  # Lock for 3 days
+            product.save()
+
+    def unlock_products(self):
+        """Unlock the products for this order"""
+        for item in self.orderitem_set.all():
+            product = item.product
+            if product.locked_by == self.user:
+                product.locked_by = None
+                product.locked_until = None
+                product.save()
+
+    def confirm_order(self):
+        """Confirm the order and mark products as sold"""
+        self.status = 'PROCESSING'
+        self.save()
+        for item in self.orderitem_set.all():
+            product = item.product
+            product.sold_quantity += item.quantity
+            product.locked_by = None
+            product.locked_until = None
+            product.save()
+
+    def complete_order(self):
+        """Mark the order as completed"""
+        self.status = 'COMPLETED'
+        self.save()
+
+    def cancel_order(self):
+        """Cancel the order and unlock products"""
+        self.status = 'CANCELLED'
+        self.save()
+        self.unlock_products()
 
 
 class OrderItem(models.Model):
@@ -251,6 +284,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=100)
     message = models.TextField()
     is_read = models.BooleanField(default=False)
+    action_url = models.CharField(max_length=200, blank=True, null=True)
     create_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

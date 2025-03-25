@@ -71,6 +71,8 @@
                 <span class="badge bg-primary">{{ order.get_status_display }}</span>
                 {% elif order.status == 'DELIVERED' %}
                 <span class="badge bg-success">{{ order.get_status_display }}</span>
+                {% elif order.status == 'COMPLETED' %}
+                <span class="badge bg-success">{{ order.get_status_display }}</span>
                 {% elif order.status == 'CANCELLED' %}
                 <span class="badge bg-danger">{{ order.get_status_display }}</span>
                 {% endif %}
@@ -81,6 +83,21 @@
                 <div class="col-md-6">
                   <h6>Order Information</h6>
                   <p><strong>Order Date:</strong> {{ order.create_date|date:"F j, Y" }}</p>
+                  <p><strong>Order Status:</strong> 
+                    {% if order.status == 'PENDING' %}
+                    <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                    {% elif order.status == 'PROCESSING' %}
+                    <span class="badge bg-info">{{ order.get_status_display }}</span>
+                    {% elif order.status == 'SHIPPED' %}
+                    <span class="badge bg-primary">{{ order.get_status_display }}</span>
+                    {% elif order.status == 'DELIVERED' %}
+                    <span class="badge bg-success">{{ order.get_status_display }}</span>
+                    {% elif order.status == 'COMPLETED' %}
+                    <span class="badge bg-success">{{ order.get_status_display }}</span>
+                    {% elif order.status == 'CANCELLED' %}
+                    <span class="badge bg-danger">{{ order.get_status_display }}</span>
+                    {% endif %}
+                  </p>
                   <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
                   <p>
                     <strong>Payment Status:</strong> 
@@ -114,27 +131,45 @@
               </div>
               {% endif %}
 
-              <!-- Add a "Pay Now" button for pending payments -->
-              {% if order.payment_status == 'PENDING' %}
-              <div class="alert alert-warning mt-3">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>Payment Required</strong>
-                    <p class="mb-0">Please complete the payment to process your order.</p>
+              <!-- Show action buttons for sellers -->
+              {% if is_seller and order.status == 'PENDING' %}
+                <div class="alert alert-info mt-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Order Action Required</strong>
+                      <p class="mb-0">Please review this order and either confirm or cancel it.</p>
+                    </div>
+                    <div>
+                      <a href="{% url 'confirm_order' order.id %}" class="btn btn-success me-2">Confirm Order</a>
+                      <a href="{% url 'cancel_order' order.id %}" class="btn btn-danger">Cancel Order</a>
+                    </div>
                   </div>
-                  <a href="{% url 'payment' order.id %}" class="btn btn-warning">Pay Now</a>
                 </div>
-              </div>
-              {% elif order.payment_status == 'FAILED' %}
-              <div class="alert alert-danger mt-3">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>Payment Failed</strong>
-                    <p class="mb-0">Your payment was unsuccessful. Please try again.</p>
+              {% endif %}
+
+              <!-- Show payment button for buyers -->
+              {% if is_buyer %}
+                {% if order.payment_status == 'PENDING' %}
+                <div class="alert alert-warning mt-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Payment Required</strong>
+                      <p class="mb-0">Please complete the payment to process your order.</p>
+                    </div>
+                    <a href="{% url 'payment' order.id %}" class="btn btn-warning">Pay Now</a>
                   </div>
-                  <a href="{% url 'payment' order.id %}" class="btn btn-warning">Try Again</a>
                 </div>
-              </div>
+                {% elif order.payment_status == 'FAILED' %}
+                <div class="alert alert-danger mt-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Payment Failed</strong>
+                      <p class="mb-0">Your payment was unsuccessful. Please try again.</p>
+                    </div>
+                    <a href="{% url 'payment' order.id %}" class="btn btn-warning">Try Again</a>
+                  </div>
+                </div>
+                {% endif %}
               {% endif %}
             </div>
           </div>
@@ -163,16 +198,16 @@
                           <a href="{% url 'detail' item.product.id %}">{{ item.product.title }}</a>
                         </div>
                       </td>
-                      <td>${{ item.price }}</td>
+                      <td>₹{{ item.price }}</td>
                       <td>{{ item.quantity }}</td>
-                      <td>${{ item.total }}</td>
+                      <td>₹{{ item.total }}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
                   <tfoot>
                     <tr>
                       <td colspan="3" class="text-end"><strong>Order Total:</strong></td>
-                      <td><strong>${{ order.order_total }}</strong></td>
+                      <td><strong>₹{{ order.order_total }}</strong></td>
                     </tr>
                   </tfoot>
                 </table>

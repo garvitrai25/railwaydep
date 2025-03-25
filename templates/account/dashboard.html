@@ -14,209 +14,145 @@
   <main id="main">
     <section class="py-5" style="background-color: #eee;">
       <div class="container">
-        <div class="row">
-          <div class="col-md-9">
-            <div class="row">
-              <div class="rounded m-3">
-                <div class="btn-group my-3" role="group" aria-label="Basic example">
-                  <a href="{% url 'add_product' %}" class="btn btn-outline-warning">Add Product</a>
-                  <a href="{% url 'add_complain' %}" class="btn btn-outline-warning">Complain</a>
-                </div>
-                 <!-- Nav tabs -->
-                <ul class="nav nav-tabs" role="tablist">
-                  <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#sale">My Sales</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#beat">Messages</a>
-                  </li>
-                </ul>
-
-                <!-- Tab panes -->
-                <div class="tab-content">
-                  <!-- sale section -->
-                  <div id="sale" class="container tab-pane active">
-                    <br>
-                    <div class="row mb-4">
-                      <div class="col-md-12">
-                        <a href="{% url 'add_product' %}" class="btn btn-warning">
-                          <i class="bx bx-plus"></i> List New Equipment
-                        </a>
-                      </div>
-                    </div>
-                    {% if products %}
-                    <div class="row mb-4">
-                      <div class="col-md-12">
-                        <div class="card bg-warning text-white">
-                          <div class="card-body">
-                            <h5 class="card-title">Total Products Listed</h5>
-                            <h2 class="card-text">{{ products|length }}</h2>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <table class="table table-hover">
-                      <thead class="table-dark">
-                        <tr>
-                          <th>Title</th>
-                          <th>Price</th>
-                          <th>Total Quantity</th>
-                          <th>Sold</th>
-                          <th>Available</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {% for product in products %}
-                        {% if product.post_type == 'FS' %}
-                        <tr>
-                          <td><a href="{% url 'detail' product.id %}">{{product.title}}</a></td>
-                          <td>₹{{product.price}}/{% if product.unit %}{{product.unit}}{% else %}Item{% endif %}</td>
-                          <td>{{product.quantity}}</td>
-                          <td>{{product.sold_quantity}}</td>
-                          <td>{{product.available_quantity}}</td>
-                          <td>
-                            {% if product.available_quantity > 0 %}
-                              <span class="badge bg-success">Active</span>
-                            {% else %}
-                              <span class="badge bg-secondary">Sold Out</span>
-                            {% endif %}
-                          </td>
-                          <td>
-                            <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-outline-warning" title="Edit">
-                              <i class='bx bxs-edit'></i>
-                            </a>
-                            <a href="{% url 'delete_product' product.id %}" class="btn btn-sm btn-outline-danger" title="Delete">
-                              <i class='bx bxs-trash'></i>
-                            </a>
-                            {% if product.available_quantity < 5 %}
-                            <button type="button" class="btn btn-sm btn-outline-success" title="Add Quantity" data-bs-toggle="modal" data-bs-target="#addQuantityModal-{{ product.id }}">
-                              <i class='bx bx-plus'></i>
-                            </button>
-                            
-                            <!-- Modal for adding quantity -->
-                            <div class="modal fade" id="addQuantityModal-{{ product.id }}" tabindex="-1" aria-labelledby="addQuantityModalLabel-{{ product.id }}" aria-hidden="true">
-                              <div class="modal-dialog">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <h5 class="modal-title" id="addQuantityModalLabel-{{ product.id }}">Add Quantity to {{ product.title }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                  </div>
-                                  <form action="{% url 'add_quantity' product.id %}" method="post">
-                                    {% csrf_token %}
-                                    <div class="modal-body">
-                                      <div class="mb-3">
-                                        <label for="additional_quantity" class="form-label">Additional Quantity ({{ product.get_unit_display }})</label>
-                                        <input type="number" class="form-control" id="additional_quantity" name="additional_quantity" min="0.01" step="0.01" required>
-                                      </div>
-                                      <p class="text-muted">Current quantity: {{ product.quantity }} {{ product.get_unit_display }}</p>
-                                      <p class="text-muted">Available quantity: {{ product.available_quantity }} {{ product.get_unit_display }}</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                      <button type="submit" class="btn btn-warning">Add Quantity</button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            </div>
-                            {% endif %}
-                          </td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                      </tbody>
-                    </table>
+        <!-- Profile Section -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-3 text-center">
+                    {% if user.user_info.profile_pic %}
+                      <img src="{{ user.user_info.profile_pic.url }}" alt="Profile Picture" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                     {% else %}
-                    <div class="text-center py-5">
-                      <i class="bi bi-shop" style="font-size: 4rem; color: #ffc107;"></i>
-                      <h3 class="mt-3">No Products Listed</h3>
-                      <p class="text-muted">Start selling your agricultural equipment today!</p>
-                    </div>
+                      <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                        <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
+                      </div>
                     {% endif %}
                   </div>
-                  
-                  <!-- messages section -->
-                  <div id="beat" class="container tab-pane fade">
-                    <br>
-                    <h4>Product Messages</h4>
-                    {% if beats %}
-                    <div class="list-group">
-                      {% for beat in beats %}
-                      <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                          <h5 class="mb-1">Re: {{ beat.product.title }}</h5>
-                          <small class="text-muted">{{ beat.create_date|timesince }} ago</small>
-                        </div>
-                        <p class="mb-1">{{ beat.reply }}</p>
-                        <small class="text-muted">From: {{ beat.user.get_full_name }}</small>
-                        <br>
-                        <small class="text-muted">Contact: {{ beat.user.email }}</small>
+                  <div class="col-md-9">
+                    <h3 class="mb-3">{{ user.get_full_name|default:user.username }}</h3>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <p><strong>Username:</strong> {{ user.username }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Member Since:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+                        <p><strong>Phone:</strong> {{ user.user_info.phone|default:"Not provided" }}</p>
+                        <p><strong>Address:</strong> {{ user.user_info.address|default:"Not provided" }}</p>
                       </div>
-                      {% endfor %}
                     </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                      <i class="bi bi-chat-dots" style="font-size: 4rem; color: #ffc107;"></i>
-                      <h4 class="mt-3">No Messages</h4>
-                      <p class="text-muted">You don't have any messages yet.</p>
+                    <div class="mt-3">
+                      <a href="{% url 'editUserInfo' %}" class="btn btn-warning">Edit Profile</a>
                     </div>
-                    {% endif %}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5>User Profile</h5>
-              </div>
-              <div class="card-body text-center">
-                {% if profile.profile_pic %}
-                <img src="{{profile.profile_pic.url}}" class="rounded-circle img-fluid" style="width: 150px;">
-                {% else %}
-                <img src="{% static 'image/demoprofile.png' %}" class="rounded-circle img-fluid" style="width: 150px;">
-                {% endif %}
-                <h5 class="my-3">{{user.get_full_name}}</h5>
-                <p class="text-muted mb-1">{{profile.address}}</p>
-                <p class="text-muted mb-4">{{profile.phone}}</p>
-                <div class="d-flex justify-content-center mb-2">
-                  <a href="{% url 'editUserInfo' %}" class="btn btn-outline-warning">Edit Profile</a>
+        </div>
+        <!-- End Profile Section -->
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="btn-group my-3" role="group" aria-label="Basic example">
+              <a href="{% url 'add_product' %}" class="btn btn-outline-warning">Add Product</a>
+              <a href="{% url 'add_complain' %}" class="btn btn-outline-warning">Submit Complaint</a>
+            </div>
+
+            <!-- Main Tabs -->
+            <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="listed-items-tab" data-bs-toggle="tab" data-bs-target="#listed-items" type="button" role="tab" aria-controls="listed-items" aria-selected="true">
+                  My Listed Items
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">
+                  Notifications
+                </button>
+              </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="dashboardTabsContent">
+              <!-- Listed Items Tab -->
+              <div class="tab-pane fade show active" id="listed-items" role="tabpanel" aria-labelledby="listed-items-tab">
+                <h3>My Listed Items</h3>
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Sold</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for product in products %}
+                      <tr>
+                        <td>
+                          <img src="{{ product.image.url }}" alt="{{ product.title }}" style="width: 50px; height: 50px; object-fit: cover;" class="me-2">
+                          {{ product.title }}
+                        </td>
+                        <td>₹{{ product.price }}</td>
+                        <td>{{ product.quantity }} {{ product.get_unit_display }}</td>
+                        <td>{{ product.sold_quantity|default:0 }} {{ product.get_unit_display }}</td>
+                        <td>
+                          {% if product.is_available %}
+                            <span class="badge bg-success">Available</span>
+                          {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          <div class="btn-group">
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url 'delete_product' product.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                            <a href="{% url 'product_orders' product.id %}" class="btn btn-sm btn-info">View Orders</a>
+                          </div>
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="6" class="text-center">No products listed yet.</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-            
-            <!-- Notifications Card -->
-            <div class="card">
-              <div class="card-header">
-                <h5>Notifications</h5>
-              </div>
-              <div class="card-body p-0">
-                {% if notifications %}
-                <div class="list-group list-group-flush">
-                  {% for notification in notifications %}
-                  <div class="list-group-item {% if not notification.is_read %}list-group-item-warning{% endif %}">
-                    <div class="d-flex w-100 justify-content-between">
-                      <h6 class="mb-1">{{ notification.title }}</h6>
-                      <small>{{ notification.create_date|timesince }} ago</small>
-                    </div>
-                    <p class="mb-1">{{ notification.message }}</p>
-                    {% if not notification.is_read %}
-                    <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-warning mt-2">Mark as Read</a>
+
+              <!-- Notifications Tab -->
+              <div class="tab-pane fade" id="notifications" role="tabpanel" aria-labelledby="notifications-tab">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Notifications</h5>
+                  </div>
+                  <div class="card-body">
+                    {% if notifications %}
+                      <div class="list-group">
+                        {% for notification in notifications %}
+                          <div class="list-group-item {% if not notification.is_read %}list-group-item-warning{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                              <h6 class="mb-1">{{ notification.title }}</h6>
+                              <small class="text-muted">{{ notification.create_date|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ notification.message|linebreaks }}</p>
+                            {% if notification.action_url %}
+                              <a href="{{ notification.action_url }}" class="btn btn-sm btn-warning">View Details</a>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <p class="text-muted text-center">No new notifications.</p>
                     {% endif %}
                   </div>
-                  {% endfor %}
                 </div>
-                {% else %}
-                <div class="text-center py-3">
-                  <p class="text-muted mb-0">No notifications</p>
-                </div>
-                {% endif %}
               </div>
             </div>
-            <!-- End Notifications Card -->
           </div>
         </div>
       </div>
